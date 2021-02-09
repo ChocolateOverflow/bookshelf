@@ -1,0 +1,221 @@
+name: shelf
+version: 0.1.0
+author: ChocolateOverflow
+about: Small and modular manager and downloader for various media
+
+args:
+    - config:
+        long: config
+        value_name: config_file
+        about: path to config file
+        takes_value: true
+    - verbose:
+        short: v
+        long: verbose
+        takes_value: false
+
+subcommands:
+
+    - modules:
+        about: List available modules
+
+    - add:
+        about: Add items to index without downloading
+        args:
+            - module:
+                short: m
+                long: module
+                takes_value: true
+            - code:
+                short: c
+                long: code
+                takes_value: true
+            - code_file:
+                short: C
+                long: code_file
+                takes_value: true
+            - url:
+                short: u
+                long: url
+                takes_value: true
+            - url_file:
+                short: U
+                long: url_file
+                takes_value: true
+
+    - download:
+        about: Index and download items
+        args:
+            - module:
+                short: m
+                long: module
+                takes_value: true
+            - code:
+                short: c
+                long: code
+                takes_value: true
+            - code_file:
+                short: C
+                long: code_file
+                takes_value: true
+            - url:
+                short: u
+                long: url
+                takes_value: true
+            - url_file:
+                short: U
+                long: url_file
+                takes_value: true
+
+    - search:
+        about: Search items in index
+        args:
+            - title:
+                about: regex match titles with
+                short: T
+                long: title
+                takes_value: true
+            - authors:
+                about: Authors, comma-separated
+                short: a
+                long: authors
+                takes_value: true
+            - tags:
+                about: Tags, comma-separated
+                short: t
+                long: tags
+                takes_value: true
+            - blacklist:
+                about: Blacklisted tags, comma-separated
+                short: b
+                long: blacklist
+                takes_value: true
+            - broad_search:
+                about: Return books which match at least 1 tag instead of all tags
+                long: broad_search
+                takes_value: false
+            - favorite:
+                about: Add item to favorites
+                short: f
+                long: favorite
+                takes_value: false
+
+    - rm:
+        about: Remove items from index and delete their files
+        args:
+            - module:
+                about: Module used to handle item
+                short: m
+                long: module
+                takes_value: true
+            - title:
+                about: regex match titles with
+                short: T
+                long: title
+                takes_value: true
+            - authors:
+                about: Authors, comma-separated
+                short: a
+                long: authors
+                takes_value: true
+            - tags:
+                about: Tags, comma-separated
+                short: t
+                long: tags
+            - blacklist:
+                about: Blacklisted tags, comma-separated
+                short: b
+                long: blacklist
+                takes_value: true
+            - broad_search:
+                about: Return books which match at least 1 tag instead of all tags
+                long: broad_search
+                takes_value: false
+            - favorite:
+                about: Add item to favorites
+                short: f
+                long: favorite
+                takes_value: false
+
+    - pull:
+        about: Search and download items already in index
+        args:
+            - module:
+                about: Module used to handle item
+                short: m
+                long: module
+                takes_value: true
+            - title:
+                about: regex match titles with
+                short: T
+                long: title
+                takes_value: true
+            - authors:
+                about: Authors, comma-separated
+                short: a
+                long: authors
+                takes_value: true
+            - tags:
+                about: Tags, comma-separated
+                short: t
+                long: tags
+                takes_value: true
+            - blacklist:
+                about: Blacklisted tags, comma-separated
+                short: b
+                long: blacklist
+                takes_value: true
+            - broad_search:
+                about: Return books which match at least 1 tag instead of all tags
+                long: broad_search
+
+    - info:
+        about: Get item information
+        args:
+            - module:
+                about: Module used to handle item
+                short: m
+                long: module
+                takes_value: true
+                required: true
+            - code:
+                about: Code identifying item
+                short: c
+                long: code
+                takes_value: true
+                required: true
+
+    - edit:
+        about: Edit items in index
+        args:
+            - module:
+                about: Module used to handle item
+                short: m
+                long: module
+                takes_value: true
+                required: true
+            - code:
+                about: Code identifying item
+                short: c
+                long: code
+                takes_value: true
+                required: true
+            - title:
+                about: New title
+                short: T
+                long: title
+                takes_value: true
+            - authors:
+                about: New authors, comma-separated
+                short: a
+                long: authors
+                takes_value: true
+            - tags:
+                about: New tags, comma-separated
+                short: t
+                long: tags
+            - favorite:
+                about: Add item to favorites
+                short: f
+                long: favorite
+                takes_value: false
