@@ -10,10 +10,10 @@ pub fn load_config(file: &PathBuf) -> HashMap<String, String> {
     let mut config: HashMap<String, String> = HashMap::new();
 
     // Defaults
-    let path: &str = "~/.config/shelf";
+    let path: &str = "~/.config/bookshelf";
     config.insert(
         "config_file".to_string(),
-        format!("{}/{}", path, "shelf.yaml"),
+        format!("{}/{}", path, "bookshelf.yaml"),
     );
     config.insert(
         "index_file".to_string(),
