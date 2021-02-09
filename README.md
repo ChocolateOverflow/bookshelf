@@ -13,7 +13,7 @@ This is something I'm making to learn Rust. ~~It's totally not because I wanted 
 bookshelf add -m example_mod -c 12345
 
 # Add to index and download item from URL
-bookshelf dl -u https://example.com/book/12345
+bookshelf download -u https://example.com/book/12345
 ```
 
 ### Search in index
@@ -24,7 +24,7 @@ bookshelf dl -u https://example.com/book/12345
 bookshelf search -T "^The.*" -a "John Doe" -t "sci-fi,comedy" -b "horror"
 
 # Search in favorites fir books by either "Jane Smith" or "Bob Ross" tagged "romance" or "comedy"
-bookshelf search -f -a "Jane Smith, Bob Ross" -t "romance,comedy" --broad_search
+bookshelf search -f -a "Jane Smith,Bob Ross" -t "romance,comedy" --broad_search
 ```
 
 ### Getting item information
@@ -38,17 +38,20 @@ bookshelf info -m example_mod -c  12345
 
 ```sh
 # Toggle favorite for book handled by `example_mod` with id `1234`
-bookshelf fav -m example_mod -c 12345
+bookshelf update -m example_mod -c 12345 -f
+
+# Update book with new title, author and tag
+bookshelf update -m example_mod -c 12345 -T "New title" -a "Alice" -t "comedy,horror"
 ```
 
 ### Download saved item
 
 ```sh
 # Download everything saved in index
-bookshelf dl_shelf
+bookshelf pull
 
 # Download items handled by `example_mod` and created by "Bob"
-bookshelf dh_shelf -m example_mod -a "Bob"
+bookshelf pull -m example_mod -a "Bob"
 ```
 
 ### Remove items
@@ -111,6 +114,10 @@ The module downloads the book with the provided code. No out put is expected, an
 ### `your_mod media`
 
 Print the media type of the item handled by the module, for example: `jpg`, `png`, `pdf`, `txt`, `mp3`, `mp4`. This is for the (to be implemented) feature of opening the downloaded files with other programs.
+
+## Misc
+
+License: GNU GPLv3
 
 ## TODO
 
