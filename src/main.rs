@@ -199,7 +199,7 @@ fn main() {
             let mut home_dir = dirs::home_dir();
             match &mut home_dir {
                 Some(h) => {
-                    h.push(".config/shelf/shelf.yaml");
+                    h.push(".config/bookshelf/bookshelf.yaml");
                     config.extend(load_config(&h))
                 }
                 _ => println!("Error getting home dir"),
