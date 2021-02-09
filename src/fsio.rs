@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 
 use crate::shelf::*;
 
-pub fn load_config(file: &PathBuf) -> HashMap<String, String> {
+pub fn load_config(config_file: &PathBuf) -> HashMap<String, String> {
     let mut config: HashMap<String, String> = HashMap::new();
 
     // Defaults
@@ -23,11 +23,18 @@ pub fn load_config(file: &PathBuf) -> HashMap<String, String> {
     config.insert("data_dir".to_string(), format!("{}/{}", path, "data"));
 
     // Read from config file
-    let f = File::open(&file).expect("Unable to open config file");
-    let data: Result<HashMap<String, String>, serde_yaml::Error> = serde_yaml::from_reader(f);
-    match data {
-        Ok(data) => config.extend(data),
-        Err(e) => println!("Error reading config file: {}", e),
+    match File::open(&config_file) {
+        Ok(f) => {
+            let data: Result<HashMap<String, String>, serde_yaml::Error> =
+                serde_yaml::from_reader(f);
+            match data {
+                Ok(data) => config.extend(data),
+                Err(e) => println!("Error reading config file: {}", e),
+            }
+        }
+        Err(e) => {
+            println!("Error openining config file (try creating ~/.config/bookshelf/bookshelf.yaml or run with --config)");
+        }
     }
 
     // expand path
