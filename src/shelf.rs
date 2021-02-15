@@ -2,6 +2,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
+/// Items to be stored in the Shelf
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Item {
     title: String,
@@ -18,11 +19,13 @@ impl Item {
         }
     }
 
+    /// Get the title, authors, and tags of the item
     pub fn export(&self) -> (&String, &HashSet<String>, &HashSet<String>) {
         return (&self.title, &self.authors, &self.tags);
     }
 }
 
+/// The shelf indexes all items and a list of favorites
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Shelf {
     index: HashMap<(String, String), Item>,
@@ -37,6 +40,7 @@ impl Shelf {
         }
     }
 
+    /// Check it an item is in the shelf
     pub fn has_item(&self, module: &str, code: &str) -> bool {
         self.index
             .contains_key(&(module.to_string(), code.to_string()))
@@ -57,6 +61,7 @@ impl Shelf {
         );
     }
 
+    /// Search for items matching the provided parameters
     pub fn search_item(
         &self,
         module: Option<&str>,
@@ -172,14 +177,19 @@ impl Shelf {
         return result;
     }
 
+    /// Remove item from index (and favorites)
     pub fn remove_item(&mut self, module: &str, code: &str) {
-        self.index.remove(&(module.to_string(), code.to_string()));
+        let key: (String, String) = (module.to_string(), code.to_string());
+        self.index.remove(&key);
+        self.favorites.remove(&key);
     }
 
+    /// Get the item corresponding to the module and code
     pub fn get_item(&self, module: &str, code: &str) -> Option<&Item> {
         self.index.get(&(module.to_string(), code.to_string()))
     }
 
+    /// Edit item with provided parameters
     pub fn edit_item(
         &mut self,
         module: Option<&str>,

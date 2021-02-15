@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 
 use crate::shelf::*;
 
+/// Read the configuration file and returns the parameters set in the provided config file.
 pub fn load_config(config_file: &PathBuf) -> HashMap<String, String> {
     let mut config: HashMap<String, String> = HashMap::new();
 
@@ -69,6 +70,7 @@ pub fn load_config(config_file: &PathBuf) -> HashMap<String, String> {
     return config;
 }
 
+/// Create necessary directories if not already present.
 pub fn create_dirs(data_dir: &PathBuf, modules_dir: &PathBuf) {
     if !data_dir.exists() {
         std::fs::create_dir_all(data_dir).expect("Error: unable to create data directory");
@@ -78,6 +80,7 @@ pub fn create_dirs(data_dir: &PathBuf, modules_dir: &PathBuf) {
     }
 }
 
+/// Read the index file and returns a Shelf object.
 pub fn load_shelf(file: &PathBuf) -> Shelf {
     if Path::new(&file).exists() {
         let data: Vec<u8> = std::fs::read(file).expect("Unable to read index file");
@@ -91,6 +94,7 @@ pub fn load_shelf(file: &PathBuf) -> Shelf {
     }
 }
 
+/// Write Shelf object to index file
 pub fn save_shelf(shelf: &Shelf, index_file: &PathBuf) {
     let data = serialize(&shelf);
     match data {

@@ -17,6 +17,16 @@ use module_handler::*;
 use shelf::*;
 use tui::*;
 
+/// Derive the directory for an item
+/// # Example:
+/// ```
+/// let data_root: String = String::from("/tmp/data");
+/// let module: &str = "myMod";
+/// let code: &str = "12345";
+/// let out_dir: String = get_item_dir(data_root, module, code);
+///
+/// assert_eq!("/tmp/data/myMod/12345", out_dir);
+/// ```
 fn get_item_dir(data_root: &String, module: &str, code: &str) -> String {
     let mut pb = PathBuf::from(&data_root);
     pb.push(module);
@@ -24,6 +34,8 @@ fn get_item_dir(data_root: &String, module: &str, code: &str) -> String {
     return pb.as_path().to_str().unwrap().to_string();
 }
 
+/// Given a URL, derive the module and code then add item to shelf, optionally
+/// downloading said item
 fn add_by_url(
     shelf: &mut Shelf,
     module_handler: &ModuleHandler,
@@ -45,6 +57,7 @@ fn add_by_url(
     }
 }
 
+/// Given a module and code, add item to shelf, optionally downloading said item
 fn add_by_code(
     shelf: &mut Shelf,
     module_handler: &ModuleHandler,
@@ -161,6 +174,7 @@ fn add_item(
     }
 }
 
+/// Print item info to stdout. To be used in CLI (single command) mode.
 fn cli_print_item(shelf: &Shelf, module: &str, code: &str) {
     if let Some(item) = shelf.get_item(module, code) {
         let (i_title, i_authors, i_tags) = item.export();
