@@ -71,7 +71,7 @@ impl Shelf {
         blacklist: Option<&str>,
         broad_search: bool,
         favorite: bool,
-    ) -> HashSet<(String, String)> {
+    ) -> Result<HashSet<(String, String)>, regex::Error> {
         // --favorite
         let mut result: HashSet<(String, String)> = if favorite {
             self.favorites.clone()
@@ -169,12 +169,11 @@ impl Shelf {
                     }
                 }
                 Err(e) => {
-                    println!("Error parsing title regex: {}", e);
+                    return Err(e);
                 }
             }
         }
-
-        return result;
+        Ok(result)
     }
 
     /// Remove item from index (and favorites)
