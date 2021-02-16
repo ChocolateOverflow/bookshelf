@@ -12,10 +12,10 @@ use std::{
     io::BufRead,
 };
 
+use crate::tui::*;
 use fsio::*;
 use module_handler::*;
 use shelf::*;
-use tui::*;
 
 /// Derive the directory for an item
 /// # Example:
@@ -42,18 +42,25 @@ fn add_by_url(
     url: &str,
     data_root: Option<&String>,
     verbose: bool,
-) {
-    if let Some(module) = module_handler.derive_module(url) {
-        if let Some(code) = module_handler.derive_code(module, url) {
-            add_by_code(
-                shelf,
-                &module_handler,
-                module,
-                code.as_str(),
-                data_root,
-                verbose,
-            );
-        }
+) -> Result<(), ModuleError> {
+    match module_handler.derive_module(url) {
+        Ok(module) => match module_handler.derive_code(module, url) {
+            Ok(code) => {
+                match add_by_code(
+                    shelf,
+                    &module_handler,
+                    module,
+                    code.as_str(),
+                    data_root,
+                    verbose,
+                ) {
+                    Ok(()) => Ok(()),
+                    Err(e) => Err(e),
+                }
+            }
+            Err(e) => Err(e),
+        },
+        Err(e) => Err(e),
     }
 }
 
@@ -65,40 +72,48 @@ fn add_by_code(
     code: &str,
     data_root: Option<&String>,
     verbose: bool,
-) {
+) -> Result<(), ModuleError> {
     if shelf.has_item(&module, &code) {
         if verbose {
             println!("Item {}/{} already indexed", &module, &code);
         }
+        Ok(())
     } else {
         // Get metadata
-        if let Some(metadata) = module_handler.get_metadata(&module, &code) {
+        match module_handler.get_metadata(&module, &code) {
             // Print item (verbose)
-            if verbose {
-                println!(
-                    "Adding item: {}/{}\n\tTitle: {}\n\tAuthors: {}\n\tTags: {}",
-                    &module, &code, &metadata.0, &metadata.1, metadata.2
-                );
+            Ok(metadata) => {
+                if verbose {
+                    println!(
+                        "Adding item: {}/{}\n\tTitle: {}\n\tAuthors: {}\n\tTags: {}",
+                        &module, &code, &metadata.0, &metadata.1, metadata.2
+                    );
+                }
+                // title
+                let title = metadata.0;
+                // authors
+                let mut authors: HashSet<String> = HashSet::new();
+                for author in metadata.1.split(",") {
+                    authors.insert(author.to_string());
+                }
+                // tags
+                let mut tags: HashSet<String> = HashSet::new();
+                for tag in metadata.2.split(",") {
+                    tags.insert(tag.to_string());
+                }
+                // Construct item
+                shelf.add_item(&module, &code, title, authors, tags);
+                // Download if data_root is set
+                if let Some(data_root) = data_root {
+                    let dest_dir: String = get_item_dir(data_root, &module, &code);
+                    match module_handler.download(&module, &code, &dest_dir) {
+                        Ok(()) => Ok(()),
+                        Err(e) => Err(e),
+                    };
+                }
+                Ok(())
             }
-            // title
-            let title = metadata.0;
-            // authors
-            let mut authors: HashSet<String> = HashSet::new();
-            for author in metadata.1.split(",") {
-                authors.insert(author.to_string());
-            }
-            // tags
-            let mut tags: HashSet<String> = HashSet::new();
-            for tag in metadata.2.split(",") {
-                tags.insert(tag.to_string());
-            }
-            // Construct item
-            shelf.add_item(&module, &code, title, authors, tags);
-            // Download if data_root is set
-            if let Some(data_root) = data_root {
-                let dest_dir: String = get_item_dir(data_root, &module, &code);
-                module_handler.download(&module, &code, &dest_dir);
-            }
+            Err(e) => Err(e),
         }
     }
 }
@@ -115,10 +130,19 @@ fn add_item(
     code_file: Option<&str>,
     data_root: Option<&String>,
     verbose: bool,
-) {
+) -> Result<(), HashMap<String, ModuleError>> {
+    let mut errors: HashMap<String, ModuleError> = HashMap::new();
     if let Some(url) = url {
         // shelf add|download -u
-        add_by_url(shelf, &module_handler, url, data_root, verbose);
+        match add_by_url(shelf, &module_handler, url, data_root, verbose) {
+            Ok(()) => {
+                return Ok(());
+            }
+            Err(e) => {
+                errors.insert(url.to_string(), e);
+                return Err(errors);
+            }
+        }
     } else if let Some(url_file) = url_file {
         // shelf add|download -U
         match File::open(url_file) {
@@ -126,51 +150,70 @@ fn add_item(
                 for line in BufReader::new(file).lines() {
                     match line {
                         Ok(url) => {
-                            add_by_url(shelf, &module_handler, url.as_str(), data_root, verbose)
+                            match add_by_url(
+                                shelf,
+                                &module_handler,
+                                url.as_str(),
+                                data_root,
+                                verbose,
+                            ) {
+                                Ok(()) => {}
+                                Err(e) => {
+                                    errors.insert(url, e);
+                                }
+                            }
                         }
-                        Err(e) => {
-                            println!("Error reading URL file: {}", e);
-                        }
+                        Err(_e) => {}
                     }
                 }
             }
-            Err(e) => {
-                println!("Error reading URL file: {}", e);
-            }
+            Err(_e) => {}
         }
     } else if let Some(module) = module {
         if let Some(code) = code {
             // shelf add|download -m MODULE -c CODE
-            add_by_code(shelf, &module_handler, module, code, data_root, verbose);
+            match add_by_code(shelf, &module_handler, module, code, data_root, verbose) {
+                Ok(()) => {
+                    return Ok(());
+                }
+                Err(e) => {
+                    errors.insert(format!("{}/{}", module, code), e);
+                    return Err(errors);
+                }
+            }
         } else if let Some(code_file) = code_file {
             // shelf add|download -m MODULE -C CODE_FILE
             match File::open(code_file) {
                 Ok(file) => {
                     for line in BufReader::new(file).lines() {
                         match line {
-                            Ok(code) => add_by_code(
-                                shelf,
-                                &module_handler,
-                                module,
-                                code.as_str(),
-                                data_root,
-                                verbose,
-                            ),
-                            Err(e) => println!("Error reading code file: {}", e),
+                            Ok(code) => {
+                                match add_by_code(
+                                    shelf,
+                                    &module_handler,
+                                    module,
+                                    code.as_str(),
+                                    data_root,
+                                    verbose,
+                                ) {
+                                    Ok(()) => {}
+                                    Err(e) => {
+                                        errors.insert(format!("{}/{}", module, code), e);
+                                    }
+                                }
+                            }
+                            Err(_e) => {}
                         }
                     }
                 }
-                Err(e) => {
-                    println!("Error reading code file: {}", e);
-                }
+                Err(_e) => {}
             }
-        } else {
-            println!("Error: 'add|download -m MODULE' also requires '-c CODE' or '-C CODE_FILE'")
         }
+    }
+    if errors.is_empty() {
+        Ok(())
     } else {
-        println!(
-            "Error: 'add|download' requires either '-u|-U' or '-m MODULE -c CODE|-C CODE_FILE'"
-        );
+        Err(errors)
     }
 }
 
@@ -242,7 +285,7 @@ fn main() {
             }
         }
         Some(("add", args)) => {
-            add_item(
+            match add_item(
                 &mut shelf,
                 &module_handler,
                 args.value_of("url"),
@@ -252,11 +295,21 @@ fn main() {
                 args.value_of("code_file"),
                 None,
                 verbose,
-            );
+            ) {
+                Ok(()) => {
+                    println!("All items added sucessfully");
+                }
+                Err(errors) => {
+                    println!("Some items failed to be added:");
+                    for (item, error) in errors {
+                        println!("{}: {:?}", item, error);
+                    }
+                }
+            }
         }
 
         Some(("download", args)) => {
-            add_item(
+            match add_item(
                 &mut shelf,
                 &module_handler,
                 args.value_of("url"),
@@ -266,11 +319,21 @@ fn main() {
                 args.value_of("code_file"),
                 config.get("data_dir"),
                 verbose,
-            );
+            ) {
+                Ok(()) => {
+                    println!("All items have been downloaded sucessfully");
+                }
+                Err(errors) => {
+                    println!("Some items failed to be downloaded:");
+                    for (item, error) in errors {
+                        println!("{}: {:?}", item, error);
+                    }
+                }
+            }
         }
 
         Some(("search", args)) => {
-            for (m, c) in shelf.search_item(
+            match shelf.search_item(
                 None,
                 args.value_of("title"),
                 args.value_of("authors"),
@@ -279,32 +342,22 @@ fn main() {
                 args.is_present("broad_search"),
                 args.is_present("favorite"),
             ) {
-                println!("{}/{}", &m, &c);
-                if verbose {
-                    cli_print_item(&shelf, &m, &c);
+                Ok(result) => {
+                    for (m, c) in result {
+                        println!("{}/{}", &m, &c);
+                        if verbose {
+                            cli_print_item(&shelf, &m, &c);
+                        }
+                    }
+                }
+                Err(e) => {
+                    println!("Error searching items: {}", e);
                 }
             }
         }
 
         Some(("rm", args)) => {
-            for (m, c) in shelf
-                .search_item(
-                    args.value_of("module"),
-                    args.value_of("title"),
-                    args.value_of("authors"),
-                    args.value_of("tags"),
-                    args.value_of("blacklist"),
-                    args.is_present("broad_search"),
-                    args.is_present("favorite"),
-                )
-                .iter()
-            {
-                shelf.remove_item(m, c);
-            }
-        }
-
-        Some(("pull", args)) => {
-            for (m, c) in shelf.search_item(
+            match shelf.search_item(
                 args.value_of("module"),
                 args.value_of("title"),
                 args.value_of("authors"),
@@ -313,11 +366,42 @@ fn main() {
                 args.is_present("broad_search"),
                 args.is_present("favorite"),
             ) {
-                module_handler.download(
-                    &m[..],
-                    &c[..],
-                    &String::from(config.get("data_dir").unwrap()),
-                );
+                Ok(result) => {
+                    for (m, c) in result.iter() {
+                        shelf.remove_item(m, c);
+                    }
+                }
+                Err(e) => {
+                    println!("Error removing items: {}", e);
+                }
+            }
+        }
+
+        Some(("pull", args)) => {
+            match shelf.search_item(
+                args.value_of("module"),
+                args.value_of("title"),
+                args.value_of("authors"),
+                args.value_of("tags"),
+                args.value_of("blacklist"),
+                args.is_present("broad_search"),
+                args.is_present("favorite"),
+            ) {
+                Ok(result) => {
+                    for (m, c) in result {
+                        match module_handler.download(
+                            &m[..],
+                            &c[..],
+                            &String::from(config.get("data_dir").unwrap()),
+                        ){
+                            Ok(()) => {},
+                            Err(_e) => println!("Module {} unavailable", &m)
+                        }
+                    }
+                }
+                Err(e) => {
+                    println!("Error pulling items: {}", e);
+                }
             }
         }
 

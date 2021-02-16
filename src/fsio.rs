@@ -33,7 +33,7 @@ pub fn load_config(config_file: &PathBuf) -> HashMap<String, String> {
                 Err(e) => println!("Error reading config file: {}", e),
             }
         }
-        Err(e) => {
+        Err(_e) => {
             println!("Error openining config file (try creating ~/.config/bookshelf/bookshelf.yaml or run with --config)");
         }
     }

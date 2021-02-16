@@ -2,7 +2,16 @@ use std::{
     collections::{HashMap, HashSet},
     path::PathBuf,
     process::Command,
+    string::FromUtf8Error,
 };
+
+#[derive(Debug)]
+pub enum ModuleError {
+    FromUtf8Error(FromUtf8Error),
+    IoError(std::io::Error),
+    NoValidModule,
+    MalformedMetadata,
+}
 
 /// A module is defined by a name and the path to the module file.
 /// The media_type parameter is set when loading modules to speed things up.
@@ -21,64 +30,46 @@ impl Module {
     }
 
     /// Check if a URL can be handled by the module
-    fn is_url_valid(&self, url: &str) -> bool {
+    fn is_url_valid(&self, url: &str) -> Result<bool, ModuleError> {
         match Command::new(&self.mod_file).args(&["check", url]).output() {
             Ok(out) => match String::from_utf8(out.stdout) {
                 Ok(out) => {
                     if strip(out) == "1" {
-                        return true;
+                        Ok(true)
                     } else {
-                        return false;
+                        Ok(false)
                     }
                 }
-                Err(e) => {
-                    println!("Error validating URL: {}", e);
-                    return false;
-                }
+                Err(e) => Err(ModuleError::FromUtf8Error(e)),
             },
-            Err(e) => {
-                println!("Error validating URL: {}", e);
-                return false;
-            }
+            Err(e) => Err(ModuleError::IoError(e)),
         }
     }
 
     /// Given a URL, return the respective item code
-    fn derive_code(&self, url: &str) -> Option<String> {
+    fn derive_code(&self, url: &str) -> Result<String, ModuleError> {
         match Command::new(&self.mod_file).args(&["code", url]).output() {
             Ok(out) => match String::from_utf8(out.stdout) {
-                Ok(out) => Some(out),
-                Err(e) => {
-                    println!("Error deriving code: {}", e);
-                    return None;
-                }
+                Ok(out) => Ok(out),
+                Err(e) => Err(ModuleError::FromUtf8Error(e)),
             },
-            Err(e) => {
-                println!("Error deriving code: {}", e);
-                None
-            }
+            Err(e) => Err(ModuleError::IoError(e)),
         }
     }
 
     /// Given an item code, return the respective URL
-    fn derive_url(&self, code: &str) -> Option<String> {
+    fn derive_url(&self, code: &str) -> Result<String, ModuleError> {
         match Command::new(&self.mod_file).args(&["url", code]).output() {
             Ok(out) => match String::from_utf8(out.stdout) {
-                Ok(out) => Some(out),
-                Err(e) => {
-                    println!("Error deriving URL: {}", e);
-                    return None;
-                }
+                Ok(out) => Ok(out),
+                Err(e) => Err(ModuleError::FromUtf8Error(e)),
             },
-            Err(e) => {
-                println!("Error deriving URL: {}", e);
-                None
-            }
+            Err(e) => Err(ModuleError::IoError(e)),
         }
     }
 
     /// Get the title, authors, and tags of a book
-    fn get_metadata(&self, code: &str) -> Option<(String, String, String)> {
+    fn get_metadata(&self, code: &str) -> Result<(String, String, String), ModuleError> {
         match Command::new(&self.mod_file)
             .args(&["metadata", code])
             .output()
@@ -87,20 +78,27 @@ impl Module {
                 Ok(out) => {
                     let out = strip(out);
                     let mut lines = out.lines();
-                    let title = lines.next();
-                    let authors = lines.next();
-                    let tags = lines.next();
-                    return Some((title?.to_string(), authors?.to_string(), tags?.to_string()));
+                    if let Some(title) = lines.next() {
+                        if let Some(authors) = lines.next() {
+                            if let Some(tags) = lines.next() {
+                                return Ok((
+                                    title.to_string(),
+                                    authors.to_string(),
+                                    tags.to_string(),
+                                ));
+                            } else {
+                                Err(ModuleError::MalformedMetadata)
+                            }
+                        } else {
+                            Err(ModuleError::MalformedMetadata)
+                        }
+                    } else {
+                        Err(ModuleError::MalformedMetadata)
+                    }
                 }
-                Err(e) => {
-                    println!("Error deriving URL: {}", e);
-                    return None;
-                }
+                Err(e) => Err(ModuleError::FromUtf8Error(e)),
             },
-            Err(e) => {
-                println!("Error deriving URL: {}", e);
-                None
-            }
+            Err(e) => Err(ModuleError::IoError(e)),
         }
     }
 
@@ -116,7 +114,6 @@ pub struct ModuleHandler {
 }
 
 impl ModuleHandler {
-
     /// Load  available modules from modules_path
     pub fn new(modules_dir: &PathBuf) -> ModuleHandler {
         let mut modules: HashMap<String, Module> = HashMap::new();
@@ -148,48 +145,53 @@ impl ModuleHandler {
                                 Err(_e) => {}
                             }
                         }
-                        Err(e) => println!("Error getting module files: {:?}", e),
+                        Err(_e) => {}
                     }
                 }
             }
-            Err(e) => {
-                println!("Error reading modules directory: {:?}", e);
-            }
+            Err(_e) => {}
         };
         ModuleHandler { modules }
     }
 
     /// Derives the appropriate module given a URL
-    pub fn derive_module(&self, url: &str) -> Option<&str> {
+    pub fn derive_module(&self, url: &str) -> Result<&String, ModuleError> {
         for (name, module) in self.modules.iter() {
-            if module.is_url_valid(url) {
-                return Some(name);
+            match module.is_url_valid(url) {
+                Ok(is_valid) => {
+                    if is_valid {
+                        return Ok(name);
+                    }
+                }
+                Err(e) => {
+                    return Err(e);
+                }
             }
         }
-        return None;
+        Err(ModuleError::NoValidModule)
     }
 
     /// Given a module and URL, derive the corresponding code
-    pub fn derive_code(&self, module: &str, url: &str) -> Option<String> {
+    pub fn derive_code(&self, module: &str, url: &str) -> Result<String, ModuleError> {
         match self.modules.get(module) {
             Some(module) => module.derive_code(url),
-            None => None,
+            None => Err(ModuleError::NoValidModule),
         }
     }
 
     /// Given a module and code, derive the corresponding URL
-    pub fn derive_url(&self, module: &str, code: &str) -> Option<String> {
+    pub fn derive_url(&self, module: &str, code: &str) -> Result<String, ModuleError> {
         match self.modules.get(module) {
             Some(module) => module.derive_url(code),
-            None => None,
+            None => Err(ModuleError::NoValidModule),
         }
     }
 
     /// Get the media type handled by a module
-    pub fn get_media_type(&self, module: &str) -> Option<String> {
+    pub fn get_media_type(&self, module: &str) -> Result<String, ModuleError> {
         match self.modules.get(module) {
-            Some(m) => Some(m.media_type.clone()),
-            None => None,
+            Some(m) => Ok(m.media_type.clone()),
+            None => Err(ModuleError::NoValidModule),
         }
     }
 
@@ -208,20 +210,25 @@ impl ModuleHandler {
     }
 
     /// Given a module and code, get the title, authors, and tags of the corresponding item
-    pub fn get_metadata(&self, module: &str, code: &str) -> Option<(String, String, String)> {
+    pub fn get_metadata(
+        &self,
+        module: &str,
+        code: &str,
+    ) -> Result<(String, String, String), ModuleError> {
         match self.modules.get(module) {
             Some(module) => module.get_metadata(code),
-            None => None,
+            None => Err(ModuleError::NoValidModule),
         }
     }
 
     /// Given a module and code, download item to the provided directory
-    pub fn download(&self, module: &str, code: &str, dest_dir: &String) {
+    pub fn download(&self, module: &str, code: &str, dest_dir: &String) -> Result<(), ModuleError> {
         match self.modules.get(module) {
-            Some(m) => m.download(code, &dest_dir[..]),
-            None => {
-                println!("Module '{}' not found", &module)
+            Some(m) => {
+                m.download(code, &dest_dir[..]);
+                Ok(())
             }
+            None => Err(ModuleError::NoValidModule),
         }
     }
 }
