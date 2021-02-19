@@ -130,5 +130,8 @@ pub fn import_shelf(shelf: &mut Shelf, index_file: &PathBuf) {
 
 pub fn export_shelf(shelf: &Shelf, index_file: &PathBuf) {
     let data = serde_yaml::to_string(&shelf).expect("Failed to export shelf");
-    std::fs::write(index_file, data);
+    match std::fs::write(index_file, data){
+        Ok(()) => println!("Successfully exported index"),
+        Err(e) => println!("Error exporting index: {}", e)
+    }
 }
