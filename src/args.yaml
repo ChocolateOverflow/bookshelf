@@ -219,3 +219,21 @@ subcommands:
                 short: f
                 long: favorite
                 takes_value: false
+
+    - import:
+        about: Import shelf data from yaml file
+        args:
+            - file:
+                about: yaml index file
+                short: f
+                takes_value: true
+                required: true
+
+    - export:
+        about: Export shelf data from yaml file
+        args:
+            - file:
+                about: yaml index file
+                short: f
+                takes_value: true
+                required: true

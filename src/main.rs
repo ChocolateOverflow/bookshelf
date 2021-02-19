@@ -393,9 +393,9 @@ fn main() {
                             &m[..],
                             &c[..],
                             &String::from(config.get("data_dir").unwrap()),
-                        ){
-                            Ok(()) => {},
-                            Err(_e) => println!("Module {} unavailable", &m)
+                        ) {
+                            Ok(()) => {}
+                            Err(_e) => println!("Module {} unavailable", &m),
                         }
                     }
                 }
@@ -424,10 +424,23 @@ fn main() {
             );
         }
 
+        Some(("import", args)) => {
+            import_shelf(&mut shelf, &PathBuf::from(args.value_of("file").unwrap()));
+        }
+
+        Some(("export", args)) => {
+            export_shelf(&shelf, &PathBuf::from(args.value_of("file").unwrap()));
+        }
+
         None => {
             // Start TUI if no argument is given
             let mut tui = TUI::new(&config, &mut shelf, &module_handler);
-            tui.start();
+            match tui.start() {
+                Ok(()) => {}
+                Err(e) => {
+                    println!("Error: {}", e)
+                }
+            }
         }
 
         _ => {

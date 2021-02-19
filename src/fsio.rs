@@ -22,6 +22,10 @@ pub fn load_config(config_file: &PathBuf) -> HashMap<String, String> {
     );
     config.insert("modules_dir".to_string(), format!("{}/{}", path, "modules"));
     config.insert("data_dir".to_string(), format!("{}/{}", path, "data"));
+    config.insert(
+        "layout".to_string(),
+        "module,code,title,authors,tags".to_string(),
+    );
 
     // Read from config file
     match File::open(&config_file) {
@@ -105,4 +109,26 @@ pub fn save_shelf(shelf: &Shelf, index_file: &PathBuf) {
             println!("Error writing index file: {}", e)
         }
     };
+}
+
+pub fn import_shelf(shelf: &mut Shelf, index_file: &PathBuf) {
+    match File::open(&index_file) {
+        Ok(f) => {
+            let data: Result<Shelf, serde_yaml::Error> = serde_yaml::from_reader(f);
+            match data {
+                Ok(new_shelf) => {
+                    shelf.import(&new_shelf);
+                }
+                Err(e) => println!("Error reading yaml index file: {}", e),
+            }
+        }
+        Err(e) => {
+            println!("Error openining yaml index file: {}", e);
+        }
+    }
+}
+
+pub fn export_shelf(shelf: &Shelf, index_file: &PathBuf) {
+    let data = serde_yaml::to_string(&shelf).expect("Failed to export shelf");
+    std::fs::write(index_file, data);
 }
