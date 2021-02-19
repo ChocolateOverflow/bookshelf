@@ -115,12 +115,20 @@ The module downloads the book with the provided code. No out put is expected, an
 
 Print the media type of the item handled by the module, for example: `jpg`, `png`, `pdf`, `txt`, `mp3`, `mp4`. This is for the (to be implemented) feature of opening the downloaded files with other programs.
 
+## Import/Exporting shelf
+
+```sh
+# Export current index to yaml file
+bookshelf export -f index.yaml
+
+# Import yaml index file to current index
+bookshelf import -f index.yaml
+```
+
 ## Misc
 
 License: GNU GPLv3
 
 ## TODO
 
-- [ ] Write documentation
-- [ ] Replace `print` statements with central CLI/UI functions
 - [ ] Make TUI
