@@ -177,7 +177,7 @@ fn add_item(
                     return Ok(());
                 }
                 Err(e) => {
-                    errors.insert(format!("{}/{}", module, code), e);
+                    errors.insert(format!("{} {}", module, code), e);
                     return Err(errors);
                 }
             }
@@ -198,7 +198,7 @@ fn add_item(
                                 ) {
                                     Ok(()) => {}
                                     Err(e) => {
-                                        errors.insert(format!("{}/{}", module, code), e);
+                                        errors.insert(format!("{} {}", module, code), e);
                                     }
                                 }
                             }
@@ -344,7 +344,7 @@ fn main() {
             ) {
                 Ok(result) => {
                     for (m, c) in result {
-                        println!("{}/{}", &m, &c);
+                        println!("{} {}", &m, &c);
                         if verbose {
                             cli_print_item(&shelf, &m, &c);
                         }
