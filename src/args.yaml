@@ -168,6 +168,10 @@ subcommands:
             - broad_search:
                 about: Return books which match at least 1 tag instead of all tags
                 long: broad_search
+            - favorite:
+                about: Pull only items in favorites
+                short: f
+                long: favorite
 
     - info:
         about: Get item information

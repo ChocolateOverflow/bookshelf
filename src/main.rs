@@ -389,11 +389,8 @@ fn main() {
             ) {
                 Ok(result) => {
                     for (m, c) in result {
-                        match module_handler.download(
-                            &m[..],
-                            &c[..],
-                            &String::from(config.get("data_dir").unwrap()),
-                        ) {
+                        let dest_dir = get_item_dir(config.get("data_dir").unwrap(), &m, &c);
+                        match module_handler.download(&m[..], &c[..], &dest_dir) {
                             Ok(()) => {}
                             Err(_e) => println!("Module {} unavailable", &m),
                         }

@@ -104,7 +104,23 @@ impl Module {
 
     /// Download a book given its code. Everything here is handled by the module.
     fn download(&self, code: &str, dest_dir: &str) {
-        Command::new(&self.mod_file).args(&["download", code, dest_dir]);
+        let pb = PathBuf::from(&dest_dir);
+        if !&pb.exists() {
+            match std::fs::create_dir_all(pb) {
+                Ok(()) => {
+                    match Command::new(&self.mod_file).args(&["download", code, dest_dir]).output(){
+                        Ok(output) => {
+                            let out = String::from_utf8(output.stdout).expect("Error converting UTF8 output");
+                            println!("{}", out);
+                        }
+                        Err(e) => println!("Error downloading item: {}", e)
+                    }
+                }
+                Err(e) => {
+                    println!("Error creating item data directory: {}", e);
+                }
+            }
+        }
     }
 }
 
