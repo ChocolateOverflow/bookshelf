@@ -253,7 +253,7 @@ fn main() {
             let path_to_config = PathBuf::from(c);
             config.extend(load_config(&path_to_config));
         } else {
-            let mut home_dir = dirs::home_dir();
+            let mut home_dir = dirs_next::home_dir();
             match &mut home_dir {
                 Some(h) => {
                     h.push(".config/bookshelf/bookshelf.yaml");
