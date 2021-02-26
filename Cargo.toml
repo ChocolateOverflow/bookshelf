@@ -1,6 +1,6 @@
 [package]
 name = "bookshelf"
-version = "1.0.3"
+version = "1.0.4"
 authors = ["ChocolateOverflow"]
 edition = "2018"
 license = "GPL-3.0"
