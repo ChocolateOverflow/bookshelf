@@ -234,14 +234,6 @@ impl Shelf {
         }
     }
 
-    pub fn get_mut_index(&mut self) -> &HashMap<(String, String), Item> {
-        &mut self.index
-    }
-
-    pub fn get_mut_favorites(&mut self) -> &HashSet<(String, String)> {
-        &mut self.favorites
-    }
-
     /// Import a shelf into self, extending self's index and favorites
     pub fn import(&mut self, new_shelf: &Shelf) {
         // index
