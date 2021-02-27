@@ -40,6 +40,11 @@ impl Shelf {
         }
     }
 
+    /// Get the index
+    pub fn get_index(&self) -> &HashMap<(String, String), Item> {
+        &self.index
+    }
+
     /// Check it an item is in the shelf
     pub fn has_item(&self, module: &str, code: &str) -> bool {
         self.index
@@ -235,35 +240,6 @@ impl Shelf {
 
     pub fn get_mut_favorites(&mut self) -> &HashSet<(String, String)> {
         &mut self.favorites
-    }
-
-    /// Get a table for the TUI
-    pub fn get_index_table(&self) -> Vec<Vec<String>> {
-        let mut table: Vec<Vec<String>> = Vec::new();
-        for (module, code) in self.index.keys() {
-            let metadata = self
-                .index
-                .get(&(module.clone(), code.clone()))
-                .unwrap()
-                .export();
-            let title = metadata.0.clone();
-            let mut authors = String::new();
-            for author in metadata.1.iter(){
-                authors.push_str(author);
-                authors.push_str(", ");
-            }
-            authors.pop();
-            authors.pop();
-            let mut genres = String::new();
-            for genre in metadata.2.iter(){
-                genres.push_str(genre);
-                genres.push_str(", ");
-            }
-            genres.pop();
-            genres.pop();
-            table.push(vec![title, authors, genres, module.clone(), code.clone()]);
-        }
-        table
     }
 
     /// Import a shelf into self, extending self's index and favorites

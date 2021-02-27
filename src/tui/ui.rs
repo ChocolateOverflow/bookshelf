@@ -31,7 +31,10 @@ impl IndexTable {
     fn new(shelf: &Shelf) -> IndexTable {
         IndexTable {
             state: TableState::default(),
-            items: shelf.get_index_table(),
+            items: index_to_table(
+                shelf.get_index(),
+                &shelf.search_item(None, None, None, None, None, false, false).unwrap(),
+            ),
         }
     }
 
@@ -184,15 +187,6 @@ impl<'lt> TUI<'lt> {
                     }
                     Key::Char('e') => {
                         // edit
-                    }
-                    Key::Char('T') => {
-                        // title
-                    }
-                    Key::Char('t') => {
-                        // genres
-                    }
-                    Key::Char('a') => {
-                        // authors
                     }
                     Key::Char('F') => {
                         // toggle favorite
