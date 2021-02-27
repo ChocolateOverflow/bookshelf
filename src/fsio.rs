@@ -33,6 +33,7 @@ pub fn save_shelf(shelf: &Shelf, index_file: &PathBuf) {
     let data = serialize(&shelf);
     match data {
         Ok(d) => {
+            println!("index file: {:?}", &index_file);
             std::fs::write(index_file, d).expect("Unable to write to index file");
         }
         Err(e) => {

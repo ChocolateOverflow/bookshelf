@@ -253,23 +253,26 @@ fn main() {
         let config = &mut config;
         if let Some(c) = args.value_of("config") {
             let path_to_config = PathBuf::from(c);
-            config.update(&path_to_config);
+            match config.update(&path_to_config) {
+                Ok(()) => {}
+                Err(e) => println!("Error loading config file: {:?}", e),
+            }
         } else {
             let mut home_dir = dirs_next::home_dir();
             match &mut home_dir {
                 Some(h) => {
                     h.push(".config/bookshelf/bookshelf.yaml");
-                    config.update(&h);
+                    match config.update(&h) {
+                        Ok(()) => {}
+                        Err(e) => println!("Error loading config file: {:?}", e),
+                    }
                 }
                 _ => println!("Error getting home dir"),
             }
         }
     }
     // Create necessary directories
-    create_dirs(
-        &config.data_dir,
-        &config.modules_dir,
-    );
+    create_dirs(&config.data_dir, &config.modules_dir);
     let verbose: bool = { args.is_present("verbose") };
 
     /***** Initialize shelf and handlers *****/
