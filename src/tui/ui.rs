@@ -127,11 +127,11 @@ impl<'lt> TUI<'lt> {
         let events = Events::new();
         let mut table = IndexTable::new(&self.shelf);
 
-        let mut height: u16 = 1;
+        let mut term_height: u16 = 1;
         let mut running = true;
         while running {
             terminal.draw(|frame| {
-                height = frame.size().height;
+                term_height = frame.size().height;
                 let rects = Layout::default()
                     .constraints([Constraint::Percentage(100)].as_ref())
                     .margin(0)
@@ -182,11 +182,11 @@ impl<'lt> TUI<'lt> {
                     }
                     Key::Ctrl('d') => {
                         // move down 50%
-                        table.next(usize::from(height/2));
+                        table.next(usize::from(term_height / 2) - 2);
                     }
                     Key::Ctrl('u') => {
                         // move up 50%
-                        table.previous(usize::from(height/2));
+                        table.previous(usize::from(term_height / 2) - 2);
                     }
                     Key::Char('f') => {
                         // filter
