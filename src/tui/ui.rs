@@ -67,6 +67,14 @@ impl IndexTable {
         };
         self.state.select(Some(i));
     }
+
+    pub fn goto_top(&mut self) {
+        self.state.select(Some(0));
+    }
+
+    pub fn goto_bottom(&mut self) {
+        self.state.select(Some(self.items.len() - 1));
+    }
 }
 
 pub struct TUI<'lt> {
@@ -201,10 +209,10 @@ impl<'lt> TUI<'lt> {
                         // cencel whatever command was being entered
                     }
                     Key::Home => {
-                        // go to top
+                        table.goto_top();
                     }
                     Key::End => {
-                        // go to bottom
+                        table.goto_bottom();
                     }
                     Key::Char('y') => {
                         // yank item to clipboard
