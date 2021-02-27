@@ -20,11 +20,11 @@ bookshelf download -u https://example.com/book/12345
 
 ```sh
 # Search for items whose titles begin with "The", are made by "John Doe" have
-# the "sci-fi" and "comedy" but not "horror" tags
-bookshelf search -T "^The.*" -a "John Doe" -t "sci-fi,comedy" -b "horror"
+# the "sci-fi" and "comedy" but not "horror" genre
+bookshelf search -t "^The.*" -a "John Doe" -g "sci-fi,comedy" -b "horror"
 
-# Search in favorites fir books by either "Jane Smith" or "Bob Ross" tagged "romance" or "comedy"
-bookshelf search -f -a "Jane Smith,Bob Ross" -t "romance,comedy" --broad_search
+# Search in favorites fir books by either "Jane Smith" or "Bob Ross" and of genre "romance" or "comedy"
+bookshelf search -f -a "Jane Smith,Bob Ross" -g "romance,comedy" --broad_search
 ```
 
 ### Getting item information
@@ -40,8 +40,8 @@ bookshelf info -m example_mod -c  12345
 # Toggle favorite for book handled by `example_mod` with id `1234`
 bookshelf update -m example_mod -c 12345 -f
 
-# Update book with new title, author and tag
-bookshelf update -m example_mod -c 12345 -T "New title" -a "Alice" -t "comedy,horror"
+# Update book with new title, author and genre
+bookshelf update -m example_mod -c 12345 -t "New title" -a "Alice" -g "comedy,horror"
 ```
 
 ### Download saved item
@@ -66,6 +66,34 @@ bookshelf rm -m example_mod -c 12345
 ```sh
 bookshelf modules
 ```
+
+### Import/Exporting shelf
+
+```sh
+# Export current index to yaml file
+bookshelf export -f index.yaml
+
+# Import yaml index file to current index
+bookshelf import -f index.yaml
+```
+
+## TUI mode
+
+To launch **bookshelf** in TUI mode, simply run `bookshelf` without arguments.
+
+- `Down`/`j` : move down
+- `Up`/`k` : move up
+- `ctrl-D` : move down 50%
+- `ctrl-U` : move up 50%
+- `Home`: go to top
+- `End`: go to bottom
+- `F` : toggle favorite (add/remove item to/from favorites)
+- `y` : yank (copy) item (module and code) to clipboard
+- `o` : open item
+- `w` : **w**rite to index file
+- `ft`/`fa`/`fg` : filter by title regex/authors/genres
+- `et`/`ea`/`eg` : edit title/authors/genres
+- `Esc` : cancel filter/edit
 
 ## Configuration
 
@@ -99,7 +127,7 @@ Given a code, the module prints the URL for the item.
 
 ### `your_mod metadata $CODE`
 
-Print title, authors, and tags for the item with the provided code. The 3 items are on separate lines, with authors and tags being comma-separated. For example:
+Print title, authors, and genres for the item with the provided code. The 3 items are on separate lines, with authors and genres being comma-separated. For example:
 
 ```
 Rust for noobs
@@ -115,20 +143,6 @@ The module downloads the book with the provided code. No out put is expected, an
 
 Print the media type of the item handled by the module, for example: `jpg`, `png`, `pdf`, `txt`, `mp3`, `mp4`. This is for the (to be implemented) feature of opening the downloaded files with other programs.
 
-## Import/Exporting shelf
-
-```sh
-# Export current index to yaml file
-bookshelf export -f index.yaml
-
-# Import yaml index file to current index
-bookshelf import -f index.yaml
-```
-
 ## Misc
 
 License: GNU GPLv3
-
-## TODO
-
-- [ ] Make TUI

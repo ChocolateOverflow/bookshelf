@@ -7,21 +7,21 @@ use std::collections::{HashMap, HashSet};
 pub struct Item {
     title: String,
     authors: HashSet<String>,
-    tags: HashSet<String>,
+    genres: HashSet<String>,
 }
 
 impl Item {
-    pub fn new(title: String, authors: HashSet<String>, tags: HashSet<String>) -> Item {
+    pub fn new(title: String, authors: HashSet<String>, genres: HashSet<String>) -> Item {
         Item {
             title,
             authors,
-            tags,
+            genres,
         }
     }
 
-    /// Get the title, authors, and tags of the item
+    /// Get the title, authors, and genres of the item
     pub fn export(&self) -> (&String, &HashSet<String>, &HashSet<String>) {
-        return (&self.title, &self.authors, &self.tags);
+        return (&self.title, &self.authors, &self.genres);
     }
 }
 
@@ -53,11 +53,11 @@ impl Shelf {
         code: &str,
         title: String,
         authors: HashSet<String>,
-        tags: HashSet<String>,
+        genres: HashSet<String>,
     ) {
         self.index.insert(
             (module.to_string(), code.to_string()),
-            Item::new(title, authors, tags),
+            Item::new(title, authors, genres),
         );
     }
 
@@ -67,7 +67,7 @@ impl Shelf {
         module: Option<&str>,
         title_regex: Option<&str>,
         authors: Option<&str>,
-        tags: Option<&str>,
+        genres: Option<&str>,
         blacklist: Option<&str>,
         broad_search: bool,
         favorite: bool,
@@ -104,14 +104,14 @@ impl Shelf {
             }
         }
 
-        // --tags
-        if let Some(tags) = tags {
+        // --genres
+        if let Some(genres) = genres {
             if broad_search {
-                // broad search (match item if at least 1 tag matches)
+                // broad search (match item if at least 1 genre matches)
                 for key in result.clone() {
-                    for tag in tags.split(",") {
+                    for genre in genres.split(",") {
                         if let Some(item) = self.index.get(&key) {
-                            if !item.tags.contains(&tag.to_string()) {
+                            if !item.genres.contains(&genre.to_string()) {
                                 result.remove(&key);
                             }
                         } else {
@@ -120,12 +120,12 @@ impl Shelf {
                     }
                 }
             } else {
-                // normal search (match item if all tags match)
+                // normal search (match item if all genres match)
                 for key in result.clone() {
                     let mut matches: bool = true;
-                    for tag in tags.split(",") {
+                    for genre in genres.split(",") {
                         if let Some(item) = self.index.get(&key) {
-                            if !item.tags.contains(&tag.to_string()) {
+                            if !item.genres.contains(&genre.to_string()) {
                                 matches = false;
                             }
                         } else {
@@ -142,9 +142,9 @@ impl Shelf {
         // --blacklist
         if let Some(blacklist) = blacklist {
             for key in result.clone() {
-                for tag in blacklist.split(",") {
+                for genre in blacklist.split(",") {
                     if let Some(item) = self.index.get(&key) {
-                        if item.tags.contains(&tag.to_string()) {
+                        if item.genres.contains(&genre.to_string()) {
                             result.remove(&key);
                         }
                     } else {
@@ -195,7 +195,7 @@ impl Shelf {
         code: Option<&str>,
         title: Option<&str>,
         authors: Option<&str>,
-        tags: Option<&str>,
+        genres: Option<&str>,
         favorite: bool,
     ) {
         // these 2 are required and can be safely unwrap'd
@@ -213,12 +213,12 @@ impl Shelf {
                 }
                 item.authors = authors;
             }
-            if let Some(t) = tags {
-                let mut tags: HashSet<String> = HashSet::new();
-                for tag in t.split(",") {
-                    tags.insert(tag.to_string());
+            if let Some(t) = genres {
+                let mut genres: HashSet<String> = HashSet::new();
+                for genre in t.split(",") {
+                    genres.insert(genre.to_string());
                 }
-                item.tags = tags;
+                item.genres = genres;
             }
         }
         // insert if item wasn't in favorites
@@ -235,6 +235,35 @@ impl Shelf {
 
     pub fn get_mut_favorites(&mut self) -> &HashSet<(String, String)> {
         &mut self.favorites
+    }
+
+    /// Get a table for the TUI
+    pub fn get_index_table(&self) -> Vec<Vec<String>> {
+        let mut table: Vec<Vec<String>> = Vec::new();
+        for (module, code) in self.index.keys() {
+            let metadata = self
+                .index
+                .get(&(module.clone(), code.clone()))
+                .unwrap()
+                .export();
+            let title = metadata.0.clone();
+            let mut authors = String::new();
+            for author in metadata.1.iter(){
+                authors.push_str(author);
+                authors.push_str(", ");
+            }
+            authors.pop();
+            authors.pop();
+            let mut genres = String::new();
+            for genre in metadata.2.iter(){
+                genres.push_str(genre);
+                genres.push_str(", ");
+            }
+            genres.pop();
+            genres.pop();
+            table.push(vec![title, authors, genres, module.clone(), code.clone()]);
+        }
+        table
     }
 
     /// Import a shelf into self, extending self's index and favorites

@@ -68,7 +68,7 @@ impl Module {
         }
     }
 
-    /// Get the title, authors, and tags of a book
+    /// Get the title, authors, and genres of a book
     fn get_metadata(&self, code: &str) -> Result<(String, String, String), ModuleError> {
         match Command::new(&self.mod_file)
             .args(&["metadata", code])
@@ -80,11 +80,11 @@ impl Module {
                     let mut lines = out.lines();
                     if let Some(title) = lines.next() {
                         if let Some(authors) = lines.next() {
-                            if let Some(tags) = lines.next() {
+                            if let Some(genres) = lines.next() {
                                 return Ok((
                                     title.to_string(),
                                     authors.to_string(),
-                                    tags.to_string(),
+                                    genres.to_string(),
                                 ));
                             } else {
                                 Err(ModuleError::MalformedMetadata)
@@ -225,7 +225,7 @@ impl ModuleHandler {
         self.modules.contains_key(module)
     }
 
-    /// Given a module and code, get the title, authors, and tags of the corresponding item
+    /// Given a module and code, get the title, authors, and genres of the corresponding item
     pub fn get_metadata(
         &self,
         module: &str,

@@ -12,7 +12,7 @@ use std::{
     io::BufRead,
 };
 
-use crate::tui::*;
+use crate::tui::ui::TUI;
 use fsio::*;
 use module_handler::*;
 use shelf::*;
@@ -85,7 +85,7 @@ fn add_by_code(
             Ok(metadata) => {
                 if verbose {
                     println!(
-                        "Adding item: {}/{}\n\tTitle: {}\n\tAuthors: {}\n\tTags: {}",
+                        "Adding item: {}/{}\n\tTitle: {}\n\tAuthors: {}\n\tgenres: {}",
                         &module, &code, &metadata.0, &metadata.1, metadata.2
                     );
                 }
@@ -96,13 +96,13 @@ fn add_by_code(
                 for author in metadata.1.split(",") {
                     authors.insert(author.to_string());
                 }
-                // tags
-                let mut tags: HashSet<String> = HashSet::new();
-                for tag in metadata.2.split(",") {
-                    tags.insert(tag.to_string());
+                // genres
+                let mut genres: HashSet<String> = HashSet::new();
+                for genre in metadata.2.split(",") {
+                    genres.insert(genre.to_string());
                 }
                 // Construct item
-                shelf.add_item(&module, &code, title, authors, tags);
+                shelf.add_item(&module, &code, title, authors, genres);
                 // Download if data_root is set
                 if let Some(data_root) = data_root {
                     let dest_dir: String = get_item_dir(data_root, &module, &code);
@@ -220,7 +220,7 @@ fn add_item(
 /// Print item info to stdout. To be used in CLI (single command) mode.
 fn cli_print_item(shelf: &Shelf, module: &str, code: &str) {
     if let Some(item) = shelf.get_item(module, code) {
-        let (i_title, i_authors, i_tags) = item.export();
+        let (i_title, i_authors, i_genres) = item.export();
         println!("Title: {}", i_title);
         let mut authors = String::new();
         for author in i_authors {
@@ -230,14 +230,14 @@ fn cli_print_item(shelf: &Shelf, module: &str, code: &str) {
         authors.pop();
         authors.pop();
         println!("Authors: {}", authors);
-        let mut tags = String::new();
-        for tag in i_tags {
-            tags.push_str(tag);
-            tags.push_str(", ");
+        let mut genres = String::new();
+        for genre in i_genres {
+            genres.push_str(genre);
+            genres.push_str(", ");
         }
-        tags.pop();
-        tags.pop();
-        println!("Authors: {}", tags);
+        genres.pop();
+        genres.pop();
+        println!("Authors: {}", genres);
     } else {
     }
 }
@@ -337,7 +337,7 @@ fn main() {
                 None,
                 args.value_of("title"),
                 args.value_of("authors"),
-                args.value_of("tags"),
+                args.value_of("genres"),
                 args.value_of("blacklist"),
                 args.is_present("broad_search"),
                 args.is_present("favorite"),
@@ -361,7 +361,7 @@ fn main() {
                 args.value_of("module"),
                 args.value_of("title"),
                 args.value_of("authors"),
-                args.value_of("tags"),
+                args.value_of("genres"),
                 args.value_of("blacklist"),
                 args.is_present("broad_search"),
                 args.is_present("favorite"),
@@ -382,7 +382,7 @@ fn main() {
                 args.value_of("module"),
                 args.value_of("title"),
                 args.value_of("authors"),
-                args.value_of("tags"),
+                args.value_of("genres"),
                 args.value_of("blacklist"),
                 args.is_present("broad_search"),
                 args.is_present("favorite"),
@@ -416,7 +416,7 @@ fn main() {
                 args.value_of("code"),
                 args.value_of("title"),
                 args.value_of("authors"),
-                args.value_of("tags"),
+                args.value_of("genres"),
                 args.is_present("favorite"),
             );
         }

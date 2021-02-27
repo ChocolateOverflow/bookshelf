@@ -24,7 +24,7 @@ pub fn load_config(config_file: &PathBuf) -> HashMap<String, String> {
     config.insert("data_dir".to_string(), format!("{}/{}", path, "data"));
     config.insert(
         "layout".to_string(),
-        "module,code,title,authors,tags".to_string(),
+        "module,code,title,authors,genres".to_string(),
     );
 
     // Read from config file

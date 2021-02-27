@@ -72,7 +72,7 @@ subcommands:
         args:
             - title:
                 about: regex match titles with
-                short: T
+                short: t
                 long: title
                 takes_value: true
             - authors:
@@ -80,18 +80,18 @@ subcommands:
                 short: a
                 long: authors
                 takes_value: true
-            - tags:
-                about: Tags, comma-separated
-                short: t
-                long: tags
+            - genres:
+                about: genres, comma-separated
+                short: g
+                long: genres
                 takes_value: true
             - blacklist:
-                about: Blacklisted tags, comma-separated
+                about: Blacklisted genres, comma-separated
                 short: b
                 long: blacklist
                 takes_value: true
             - broad_search:
-                about: Return books which match at least 1 tag instead of all tags
+                about: Return books which match at least 1 genre instead of all genres
                 long: broad_search
                 takes_value: false
             - favorite:
@@ -110,7 +110,7 @@ subcommands:
                 takes_value: true
             - title:
                 about: regex match titles with
-                short: T
+                short: t
                 long: title
                 takes_value: true
             - authors:
@@ -118,17 +118,17 @@ subcommands:
                 short: a
                 long: authors
                 takes_value: true
-            - tags:
-                about: Tags, comma-separated
-                short: t
-                long: tags
+            - genres:
+                about: genres, comma-separated
+                short: g
+                long: genres
             - blacklist:
-                about: Blacklisted tags, comma-separated
+                about: Blacklisted genres, comma-separated
                 short: b
                 long: blacklist
                 takes_value: true
             - broad_search:
-                about: Return books which match at least 1 tag instead of all tags
+                about: Return books which match at least 1 genre instead of all genres
                 long: broad_search
                 takes_value: false
             - favorite:
@@ -147,7 +147,7 @@ subcommands:
                 takes_value: true
             - title:
                 about: regex match titles with
-                short: T
+                short: t
                 long: title
                 takes_value: true
             - authors:
@@ -155,18 +155,18 @@ subcommands:
                 short: a
                 long: authors
                 takes_value: true
-            - tags:
-                about: Tags, comma-separated
-                short: t
-                long: tags
+            - genres:
+                about: genres, comma-separated
+                short: g
+                long: genres
                 takes_value: true
             - blacklist:
-                about: Blacklisted tags, comma-separated
+                about: Blacklisted genres, comma-separated
                 short: b
                 long: blacklist
                 takes_value: true
             - broad_search:
-                about: Return books which match at least 1 tag instead of all tags
+                about: Return books which match at least 1 genre instead of all genres
                 long: broad_search
             - favorite:
                 about: Pull only items in favorites
@@ -206,7 +206,7 @@ subcommands:
                 required: true
             - title:
                 about: New title
-                short: T
+                short: t
                 long: title
                 takes_value: true
             - authors:
@@ -214,10 +214,10 @@ subcommands:
                 short: a
                 long: authors
                 takes_value: true
-            - tags:
-                about: New tags, comma-separated
-                short: t
-                long: tags
+            - genres:
+                about: New genres, comma-separated
+                short: g
+                long: genres
             - favorite:
                 about: Add item to favorites
                 short: f
