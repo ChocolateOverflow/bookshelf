@@ -33,7 +33,9 @@ impl IndexTable {
             state: TableState::default(),
             items: index_to_table(
                 shelf.get_index(),
-                &shelf.search_item(None, None, None, None, None, false, false).unwrap(),
+                &shelf
+                    .search_item(None, None, None, None, None, false, false)
+                    .unwrap(),
             ),
         }
     }
@@ -125,13 +127,15 @@ impl<'lt> TUI<'lt> {
         let events = Events::new();
         let mut table = IndexTable::new(&self.shelf);
 
+        let mut height: u16 = 1;
         let mut running = true;
         while running {
-            terminal.draw(|f| {
+            terminal.draw(|frame| {
+                height = frame.size().height;
                 let rects = Layout::default()
                     .constraints([Constraint::Percentage(100)].as_ref())
                     .margin(0)
-                    .split(f.size());
+                    .split(frame.size());
                 let style_normal = Style::default();
                 let style_selected = Style::default().add_modifier(Modifier::REVERSED);
                 let header_cells = ["Title", "Authors", "Genres", "Module", "Code"]
@@ -162,7 +166,7 @@ impl<'lt> TUI<'lt> {
                         Constraint::Percentage(5),
                         Constraint::Percentage(5),
                     ]);
-                f.render_stateful_widget(t, rects[0], &mut table.state);
+                frame.render_stateful_widget(t, rects[0], &mut table.state);
             })?;
 
             if let Event::Input(key) = events.next()? {
@@ -178,9 +182,11 @@ impl<'lt> TUI<'lt> {
                     }
                     Key::Ctrl('d') => {
                         // move down 50%
+                        table.next(usize::from(height/2));
                     }
                     Key::Ctrl('u') => {
                         // move up 50%
+                        table.previous(usize::from(height/2));
                     }
                     Key::Char('f') => {
                         // filter
