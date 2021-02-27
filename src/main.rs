@@ -1,3 +1,4 @@
+pub mod config;
 pub mod fsio;
 pub mod module_handler;
 pub mod shelf;
@@ -13,6 +14,7 @@ use std::{
 };
 
 use crate::tui::ui::TUI;
+use config::*;
 use fsio::*;
 use module_handler::*;
 use shelf::*;
@@ -27,11 +29,11 @@ use shelf::*;
 ///
 /// assert_eq!("/tmp/data/myMod/12345", out_dir);
 /// ```
-fn get_item_dir(data_root: &String, module: &str, code: &str) -> String {
-    let mut pb = PathBuf::from(&data_root);
+fn get_item_dir(data_root: &PathBuf, module: &str, code: &str) -> PathBuf {
+    let mut pb = data_root.clone();
     pb.push(module);
     pb.push(code);
-    return pb.as_path().to_str().unwrap().to_string();
+    pb
 }
 
 /// Given a URL, derive the module and code then add item to shelf, optionally
@@ -40,7 +42,7 @@ fn add_by_url(
     shelf: &mut Shelf,
     module_handler: &ModuleHandler,
     url: &str,
-    data_root: Option<&String>,
+    data_root: Option<&PathBuf>,
     verbose: bool,
 ) -> Result<(), ModuleError> {
     match module_handler.derive_module(url) {
@@ -70,7 +72,7 @@ fn add_by_code(
     module_handler: &ModuleHandler,
     module: &str,
     code: &str,
-    data_root: Option<&String>,
+    data_root: Option<&PathBuf>,
     verbose: bool,
 ) -> Result<(), ModuleError> {
     if shelf.has_item(&module, &code) {
@@ -105,7 +107,7 @@ fn add_by_code(
                 shelf.add_item(&module, &code, title, authors, genres);
                 // Download if data_root is set
                 if let Some(data_root) = data_root {
-                    let dest_dir: String = get_item_dir(data_root, &module, &code);
+                    let dest_dir: PathBuf = get_item_dir(data_root, &module, &code);
                     match module_handler.download(&module, &code, &dest_dir) {
                         Ok(()) => Ok(()),
                         Err(e) => Err(e),
@@ -128,7 +130,7 @@ fn add_item(
     module: Option<&str>,
     code: Option<&str>,
     code_file: Option<&str>,
-    data_root: Option<&String>,
+    data_root: Option<&PathBuf>,
     verbose: bool,
 ) -> Result<(), HashMap<String, ModuleError>> {
     let mut errors: HashMap<String, ModuleError> = HashMap::new();
@@ -246,18 +248,18 @@ fn main() {
     /***** Parse arguments and load config *****/
     let arg_file = load_yaml!("args.yaml");
     let args = App::from(arg_file).get_matches();
-    let mut config: HashMap<String, String> = HashMap::new();
+    let mut config = Config::default();
     {
         let config = &mut config;
         if let Some(c) = args.value_of("config") {
             let path_to_config = PathBuf::from(c);
-            config.extend(load_config(&path_to_config));
+            config.update(&path_to_config);
         } else {
             let mut home_dir = dirs_next::home_dir();
             match &mut home_dir {
                 Some(h) => {
                     h.push(".config/bookshelf/bookshelf.yaml");
-                    config.extend(load_config(&h))
+                    config.update(&h);
                 }
                 _ => println!("Error getting home dir"),
             }
@@ -265,17 +267,15 @@ fn main() {
     }
     // Create necessary directories
     create_dirs(
-        &PathBuf::from(config.get("data_dir").unwrap()),
-        &PathBuf::from(config.get("modules_dir").unwrap()),
+        &config.data_dir,
+        &config.modules_dir,
     );
     let verbose: bool = { args.is_present("verbose") };
 
     /***** Initialize shelf and handlers *****/
     // These can be unwrap'd safely because load_config guarantees the entries
-    let path_to_index = PathBuf::from(config.get("index_file").unwrap());
-    let path_to_modules = PathBuf::from(config.get("modules_dir").unwrap());
-    let mut shelf: Shelf = load_shelf(&path_to_index);
-    let module_handler = ModuleHandler::new(&path_to_modules);
+    let mut shelf: Shelf = load_shelf(&config.index_file);
+    let module_handler = ModuleHandler::new(&config.modules_dir);
 
     /***** main *****/
     match args.subcommand() {
@@ -317,7 +317,7 @@ fn main() {
                 args.value_of("module"),
                 args.value_of("code"),
                 args.value_of("code_file"),
-                config.get("data_dir"),
+                Some(&config.data_dir),
                 verbose,
             ) {
                 Ok(()) => {
@@ -389,7 +389,7 @@ fn main() {
             ) {
                 Ok(result) => {
                     for (m, c) in result {
-                        let dest_dir = get_item_dir(config.get("data_dir").unwrap(), &m, &c);
+                        let dest_dir = get_item_dir(&config.data_dir, &m, &c);
                         match module_handler.download(&m[..], &c[..], &dest_dir) {
                             Ok(()) => {}
                             Err(_e) => println!("Module {} unavailable", &m),
@@ -446,5 +446,5 @@ fn main() {
     }
 
     /***** Save and exit *****/
-    save_shelf(&shelf, &path_to_index);
+    save_shelf(&shelf, &config.index_file);
 }

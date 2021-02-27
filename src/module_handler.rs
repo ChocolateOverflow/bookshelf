@@ -238,10 +238,11 @@ impl ModuleHandler {
     }
 
     /// Given a module and code, download item to the provided directory
-    pub fn download(&self, module: &str, code: &str, dest_dir: &String) -> Result<(), ModuleError> {
+    pub fn download(&self, module: &str, code: &str, dest_dir: &PathBuf) -> Result<(), ModuleError> {
+        let dest_dir = &*dest_dir.clone().into_os_string().into_string().unwrap();
         match self.modules.get(module) {
             Some(m) => {
-                m.download(code, &dest_dir[..]);
+                m.download(code, dest_dir);
                 Ok(())
             }
             None => Err(ModuleError::NoValidModule),

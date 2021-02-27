@@ -17,6 +17,7 @@ use tui::{
     Terminal,
 };
 
+use crate::config::*;
 use crate::fsio::*;
 use crate::module_handler::*;
 use crate::shelf::*;
@@ -78,7 +79,7 @@ impl IndexTable {
 }
 
 pub struct TUI<'lt> {
-    config: &'lt HashMap<String, String>,
+    config: &'lt Config,
     shelf: &'lt Shelf,
     module_handler: &'lt ModuleHandler,
 }
@@ -114,7 +115,7 @@ fn index_to_table<'a>(
 
 impl<'lt> TUI<'lt> {
     pub fn new<'a>(
-        config: &'lt HashMap<String, String>,
+        config: &'lt Config,
         shelf: &'lt mut Shelf,
         module_handler: &'lt ModuleHandler,
     ) -> TUI<'lt> {
@@ -220,12 +221,13 @@ impl<'lt> TUI<'lt> {
                     Key::Char('o') => {
                         // open item
                     }
+                    Key::Char('r') => {
+                        // Reload index
+                        //self.shelf = &load_shelf(&self.config.index_file);
+                    }
                     Key::Char('w') => {
                         // write
-                        save_shelf(
-                            &self.shelf,
-                            &PathBuf::from(self.config.get("index_file").unwrap()),
-                        );
+                        save_shelf(&self.shelf, &self.config.index_file);
                     }
                     _ => {}
                 }
