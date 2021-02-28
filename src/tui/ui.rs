@@ -1,13 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    path::PathBuf,
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        mpsc, Arc,
-    },
-    thread,
-    time::Duration,
-};
+use std::collections::{HashMap, HashSet};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
@@ -110,6 +101,7 @@ fn index_to_table<'a>(
             result.push(vec![title, authors, genres, module.clone(), code.clone()]);
         }
     }
+    result.sort();
     result
 }
 
@@ -206,8 +198,11 @@ impl<'lt> TUI<'lt> {
                     Key::Char('F') => {
                         // toggle favorite
                     }
-                    Key::Esc => {
-                        // cencel whatever command was being entered
+                    Key::Char('D') => {
+                        // delete
+                    }
+                    Key::Char('d') => {
+                        // download
                     }
                     Key::Home => {
                         table.goto_top();
