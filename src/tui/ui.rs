@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
@@ -76,8 +76,8 @@ pub struct TUI<'lt> {
 }
 
 fn index_to_table<'a>(
-    index: &HashMap<(String, String), Item>,
-    targets: &HashSet<(String, String)>,
+    index: &BTreeMap<(String, String), Item>,
+    targets: &BTreeSet<(String, String)>,
 ) -> Vec<Vec<String>> {
     let mut result: Vec<Vec<String>> = Vec::new();
     for (module, code) in targets {

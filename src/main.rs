@@ -9,7 +9,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{BTreeMap, BTreeSet},
     io::BufRead,
 };
 
@@ -94,12 +94,12 @@ fn add_by_code(
                 // title
                 let title = metadata.0;
                 // authors
-                let mut authors: HashSet<String> = HashSet::new();
+                let mut authors: BTreeSet<String> = BTreeSet::new();
                 for author in metadata.1.split(",") {
                     authors.insert(author.to_string());
                 }
                 // genres
-                let mut genres: HashSet<String> = HashSet::new();
+                let mut genres: BTreeSet<String> = BTreeSet::new();
                 for genre in metadata.2.split(",") {
                     genres.insert(genre.to_string());
                 }
@@ -132,8 +132,8 @@ fn add_item(
     code_file: Option<&str>,
     data_root: Option<&PathBuf>,
     verbose: bool,
-) -> Result<(), HashMap<String, ModuleError>> {
-    let mut errors: HashMap<String, ModuleError> = HashMap::new();
+) -> Result<(), BTreeMap<String, ModuleError>> {
+    let mut errors: BTreeMap<String, ModuleError> = BTreeMap::new();
     if let Some(url) = url {
         // shelf add|download -u
         match add_by_url(shelf, &module_handler, url, data_root, verbose) {

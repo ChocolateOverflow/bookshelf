@@ -1,5 +1,5 @@
 use serde_yaml::from_reader;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fs::File;
 use std::path::PathBuf;
 
@@ -40,7 +40,7 @@ impl Config {
     pub fn update(&mut self, config_file: &PathBuf) -> Result<(), ConfigError> {
         match File::open(config_file) {
             Ok(file) => {
-                let r: Result<HashMap<String, String>, serde_yaml::Error> = from_reader(file);
+                let r: Result<BTreeMap<String, String>, serde_yaml::Error> = from_reader(file);
                 match r {
                     Ok(data) => {
                         if let Some(index_file) = data.get("index_file") {

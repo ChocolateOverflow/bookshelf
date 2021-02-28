@@ -1,17 +1,17 @@
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet};
 
 /// Items to be stored in the Shelf
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Item {
     title: String,
-    authors: HashSet<String>,
-    genres: HashSet<String>,
+    authors: BTreeSet<String>,
+    genres: BTreeSet<String>,
 }
 
 impl Item {
-    pub fn new(title: String, authors: HashSet<String>, genres: HashSet<String>) -> Item {
+    pub fn new(title: String, authors: BTreeSet<String>, genres: BTreeSet<String>) -> Item {
         Item {
             title,
             authors,
@@ -20,7 +20,7 @@ impl Item {
     }
 
     /// Get the title, authors, and genres of the item
-    pub fn export(&self) -> (&String, &HashSet<String>, &HashSet<String>) {
+    pub fn export(&self) -> (&String, &BTreeSet<String>, &BTreeSet<String>) {
         return (&self.title, &self.authors, &self.genres);
     }
 }
@@ -28,20 +28,20 @@ impl Item {
 /// The shelf indexes all items and a list of favorites
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Shelf {
-    index: HashMap<(String, String), Item>,
-    favorites: HashSet<(String, String)>,
+    index: BTreeMap<(String, String), Item>,
+    favorites: BTreeSet<(String, String)>,
 }
 
 impl Shelf {
     pub fn new() -> Shelf {
         Shelf {
-            index: HashMap::new(),
-            favorites: HashSet::new(),
+            index: BTreeMap::new(),
+            favorites: BTreeSet::new(),
         }
     }
 
     /// Get the index
-    pub fn get_index(&self) -> &HashMap<(String, String), Item> {
+    pub fn get_index(&self) -> &BTreeMap<(String, String), Item> {
         &self.index
     }
 
@@ -57,8 +57,8 @@ impl Shelf {
         module: &str,
         code: &str,
         title: String,
-        authors: HashSet<String>,
-        genres: HashSet<String>,
+        authors: BTreeSet<String>,
+        genres: BTreeSet<String>,
     ) {
         self.index.insert(
             (module.to_string(), code.to_string()),
@@ -76,9 +76,9 @@ impl Shelf {
         blacklist: Option<&str>,
         broad_search: bool,
         favorite: bool,
-    ) -> Result<HashSet<(String, String)>, regex::Error> {
+    ) -> Result<BTreeSet<(String, String)>, regex::Error> {
         // --favorite
-        let mut result: HashSet<(String, String)> = if favorite {
+        let mut result: BTreeSet<(String, String)> = if favorite {
             self.favorites.clone()
         } else {
             self.index.keys().cloned().collect()
@@ -212,14 +212,14 @@ impl Shelf {
                 item.title = t.to_string();
             }
             if let Some(s) = authors {
-                let mut authors: HashSet<String> = HashSet::new();
+                let mut authors: BTreeSet<String> = BTreeSet::new();
                 for author in s.split(",") {
                     authors.insert(author.to_string());
                 }
                 item.authors = authors;
             }
             if let Some(t) = genres {
-                let mut genres: HashSet<String> = HashSet::new();
+                let mut genres: BTreeSet<String> = BTreeSet::new();
                 for genre in t.split(",") {
                     genres.insert(genre.to_string());
                 }

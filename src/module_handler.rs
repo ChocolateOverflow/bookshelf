@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{BTreeMap, BTreeSet},
     path::PathBuf,
     process::Command,
     string::FromUtf8Error,
@@ -126,13 +126,13 @@ impl Module {
 
 /// Handles everything about modules.
 pub struct ModuleHandler {
-    modules: HashMap<String, Module>,
+    modules: BTreeMap<String, Module>,
 }
 
 impl ModuleHandler {
     /// Load  available modules from modules_path
     pub fn new(modules_dir: &PathBuf) -> ModuleHandler {
-        let mut modules: HashMap<String, Module> = HashMap::new();
+        let mut modules: BTreeMap<String, Module> = BTreeMap::new();
         match std::fs::read_dir(&modules_dir) {
             Ok(files) => {
                 // Look at all files in `modules_dir/`
@@ -212,8 +212,8 @@ impl ModuleHandler {
     }
 
     /// Get a set of available modules
-    pub fn list_modules(&self) -> HashSet<String> {
-        let mut result = HashSet::new();
+    pub fn list_modules(&self) -> BTreeSet<String> {
+        let mut result = BTreeSet::new();
         for key in self.modules.keys() {
             result.insert(key.clone());
         }
