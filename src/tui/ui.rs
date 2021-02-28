@@ -71,7 +71,7 @@ impl IndexTable {
 
 pub struct TUI<'lt> {
     config: &'lt Config,
-    shelf: &'lt Shelf,
+    shelf: &'lt mut Shelf,
     module_handler: &'lt ModuleHandler,
 }
 
@@ -161,9 +161,9 @@ impl<'lt> TUI<'lt> {
                     .block(Block::default().borders(Borders::ALL))
                     .highlight_style(style_selected)
                     .widths(&[
-                        Constraint::Percentage(30),
+                        Constraint::Percentage(35),
                         Constraint::Percentage(20),
-                        Constraint::Percentage(40),
+                        Constraint::Percentage(35),
                         Constraint::Percentage(5),
                         Constraint::Percentage(5),
                     ]);
@@ -218,7 +218,8 @@ impl<'lt> TUI<'lt> {
                     }
                     Key::Char('r') => {
                         // Reload index
-                        //self.shelf = &load_shelf(&self.config.index_file);
+                        *self.shelf = load_shelf(&self.config.index_file);
+                        table = IndexTable::new(&self.shelf);
                     }
                     Key::Char('w') => {
                         // write
