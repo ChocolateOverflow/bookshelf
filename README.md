@@ -81,6 +81,8 @@ bookshelf import -f index.yaml
 
 To launch **bookshelf** in TUI mode, simply run `bookshelf` without arguments.
 
+![TUI](./img/tui.png)
+
 - `Down`/`j` : move down
 - `Up`/`k` : move up
 - `ctrl-D` : move down 50%
