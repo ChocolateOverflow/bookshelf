@@ -337,7 +337,7 @@ fn main() {
 
         Some(("search", args)) => {
             match shelf.search_item(
-                None,
+                args.value_of("module"),
                 args.value_of("title"),
                 args.value_of("authors"),
                 args.value_of("genres"),

@@ -70,6 +70,10 @@ subcommands:
     - search:
         about: Search items in index
         args:
+            - module:
+                short: m
+                long: module
+                takes_value: true
             - title:
                 about: regex match titles with
                 short: t
