@@ -7,7 +7,7 @@ pub mod tui;
 use clap::{load_yaml, App};
 use std::fs::File;
 use std::io::BufReader;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::{
     collections::{BTreeMap, BTreeSet},
     io::BufRead,
@@ -253,9 +253,11 @@ fn main() {
         let config = &mut config;
         if let Some(c) = args.value_of("config") {
             let path_to_config = PathBuf::from(c);
-            match config.update(&path_to_config) {
-                Ok(()) => {}
-                Err(e) => println!("Error loading config file: {:?}", e),
+            if Path::new(&path_to_config).exists() {
+                match config.update(&path_to_config) {
+                    Ok(()) => {}
+                    Err(e) => println!("Error loading config file: {:?}", e),
+                }
             }
         } else {
             let mut home_dir = dirs_next::home_dir();
